@@ -1,0 +1,13 @@
+[Unit]
+Description=pca9685 based servo driver
+Requires=pigpiod.service
+After=pigpiod.service
+
+[Service]
+ExecStart=/usr/local/bin/pca9685servod
+ExceStop=/bin/systemctl kill pca9685servo
+Type=forking
+
+[Install]
+WantedBy=motioneye.service
+
