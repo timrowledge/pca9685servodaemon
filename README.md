@@ -1,10 +1,26 @@
 # pca9685servodaemon
-A simple daemon for Raspbian to drive a pca9685 pwm card such as those from Sparkfun and Adafruit
+A simple daemon for Raspbian to drive a pca9685 based pwm card such as those from Sparkfun and Adafruit
 
 Originally inspired by Richad Hirst's servoblaster
 
-This daemon creates /dev/pca9685servo and waits for input. Writing 0=50% to /dev/pca9685 would set the pwm duty cycle of output 0 to 50%.
-Read the help info by running the daemon locally with '-h' to see -
+This daemon creates /dev/pca9685servo and waits for input. Writing "0=50%" to /dev/pca9685 would set the pwm duty cycle of output 0 to 50%.
+
+Clone this repository or download the zip to a suitable place on your Pi. In a terminal run
+
+	make
+
+to simply build the daemon. You can run it manually to test it if you wish. To build and install the daemon run
+
+	make install
+
+
+This will copy the daemon to /usr/local/bin, enable the pigpiod daemon that we depend on, enable this daemon and start both of them. Once the system is runnng you can test your servo (connected to socket 0 in this case) with a simple
+
+	echo 0=65% > /dev/pca9685servo
+
+Although some modern servos can accept a wider range of motion than is normally specified in the model radio control world, I do urge you to test things out with the default pulse width first. The default min & max are set to 1000uSec and 2000uSec respectively. You may find your servos able to go as far as 500 and 2500uSec.
+
+You can read the help info by running the daemon locally with '-h' to see -
 
 	--help              this incredibly helpful message
 	--cycle-time=Nus    control pulse cycle time in microseconds, default
@@ -30,19 +46,7 @@ Read the help info by running the daemon locally with '-h' to see -
 	Servo position can be set  relative to the current
 	position by adding a '+' or '-' in front of the width:
 	echo 0=+10%% > /dev/pca9685servo
-	echo 0=-20 > /dev/pca9685servo
-	
-	Install and start up with
-	A) copy the servo daemon to /usr/local/bin
-	sudo cp pca9685servod /usr/local/bin
-	sudo chmod ugo+x /usr/local/bin/pca9685servod
-	
-	B) make sure the pigpio daemon is enabled and started
-	sudo systemctl enable pigpiod
-	sudo systemctl start pigpiod
-	
-	C) copy the servod service file and enable the daemon
-	sudo cp pca9685servo.service /etc/systemd/system/
-	sudo systemctl daemon-reload
-	sudo systemctl enable pca9685servo
-	sudo systemctl start pca9685servo
+	echo 0=-20 > /dev/pca9685servo	
+
+
+
