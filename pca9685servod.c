@@ -143,6 +143,7 @@ static void fatal(char *fmt, ...)
 	terminate(0);
 }
 
+#if (DEBUG)
 static void read_servo(int servo, unsigned int *on, unsigned int *off) {
     unsigned int on_off[4];
     int i, p, ret;
@@ -159,6 +160,7 @@ static void read_servo(int servo, unsigned int *on, unsigned int *off) {
     *on = on_off[0] | (on_off[1] <<8);
     *off = on_off[2] | (on_off[3] <<8);
 }
+#endif
 
 static void  all_pwm_off(void)
 {
@@ -222,12 +224,13 @@ static void setup_sighandlers(void)
 }
 
 
-static void init_servo_starts(void) {
+static void init_servo_starts(int spreadout) {
     int servo, currentStart = 0;
-	/* set the servo start ticks to spread out the current draw */
+	/* set the servo start ticks either at the same time (spreadout = 0) or
+	to spread out the current draw . The former mighth help when driving LEDs */
 	for (servo = 0; servo < MAX_SERVOS; servo++) {
 		servoStart[servo] = currentStart;
-		currentStart += 4096 / MAX_SERVOS;
+		if (spreadout) currentStart += 4096 / MAX_SERVOS;
 	}
 }
 
@@ -455,6 +458,7 @@ int main(int argc, char **argv) {
 	char *stepTimeArg = NULL;
 	char *i2c_address_arg = NULL;
 	char *p;
+	int  noflicker = 1;
 
 	setvbuf(stdout, NULL, _IOLBF, 0);
 
@@ -464,6 +468,7 @@ int main(int argc, char **argv) {
 
 		static struct option long_options[] = {
 			{ "help",         no_argument,       0, 'h' },
+			{ "noflicker",      no_argument,     0, 'n' },
 			{ "min",          required_argument, 0, 'm' },
 			{ "max",          required_argument, 0, 'x' },
 			{ "cycle-time",   required_argument, 0, 'c' },
@@ -485,6 +490,8 @@ int main(int argc, char **argv) {
 			servoMaxPulseArg = optarg;
 		} else if (c == 'a') {
 			i2c_address_arg = optarg;
+		} else if (c== 'n') {
+		    noflicker = 0;
 		} else if (c == 'h') {
 			printf("\nUsage: %s <options>\n\n"
 				"Options:\n"
@@ -510,7 +517,9 @@ int main(int argc, char **argv) {
 				"Servo position can be set  relative to the current\n"
 				"position by adding a '+' or '-' in front of the width:\n"
 				"  echo 0=+10%% > /dev/pca9685servo\n"
-				"  echo 0=-20 > /dev/pca9685servo\n\n",
+				"  echo 0=-20 > /dev/pca9685servo\n\n"
+				" --noflicker          set all outputs to start their cycle at the same time\n"
+				"                      which may reduce flicker when driving a number of LEDS\n\n",
 				argv[0],
 				DEFAULT_cycleTimeUSec,
 				DEFAULT_stepTimeUSec,
@@ -593,7 +602,7 @@ int main(int argc, char **argv) {
 
 	setup_sighandlers();
 	
-	init_servo_starts();
+	init_servo_starts(noflicker);
 	init_hardware();
 
 	unlink(PCADEVICEFILE);
