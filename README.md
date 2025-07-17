@@ -4,6 +4,7 @@ A simple daemon for Raspbian to drive a pca9685 based pwm card such as those fro
 Originally inspired by Richad Hirst's servoblaster
 
 This daemon creates /dev/pca9685servo and waits for input. Writing "0=50%" to /dev/pca9685 would set the pwm duty cycle of output 0 to 50%.
+(2025-07-17 A warning - the gpio library situation changed with the Pi 5 and it is possible none of this still works.Maybe I'll get around to finxing it)
 
 Clone this repository or download the zip to a suitable place on your Pi. In a terminal run
 
